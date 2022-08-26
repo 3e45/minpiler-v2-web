@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/three-dots@0.2.3/dist/three-dots.min.css" integrity="sha256-Lvsr155OwmTLnoZLG7t5Jc6Fx9117XY6YPPXyZjm//w=" crossorigin="anonymous">
+    </head>
+    <body>
+        <div id="loading">Loading <div class="dot-pulse" style="margin-left: 20px;"></div></div>
+
+        <pre><code id="stderr"></code></pre>
+        <script>
+            function println(message) {
+                document.querySelector("#stderr").innerText += message + "\n"
+            }
+            println("Downloading Python...")
+        </script>
+        <script src="https://cdn.jsdelivr.net/pyodide/v0.21.1/full/pyodide.js"></script>
+        <script>
+            async function main() {
+                println("Loading Python...")
+                const pyodide = await loadPyodide()
+
+                println("Loading pip...")
+                await pyodide.loadPackage("micropip")
+                const micropip = pyodide.pyimport("micropip")
+
+                println("Installing networkx...")
+                await micropip.install('networkx')
+
+                println("Downloading minpiler...")
+                // zip -r minpiler.zip minpiler
+                await pyodide.unpackArchive(await (await fetch("./minpiler.zip")).arrayBuffer(), "zip")
+
+                println("Loading minpiler...")
+                pyodide.runPython(`
+from minpiler import compiler, optimizer
+from pathlib import Path
+`)
+                println("Done")
+                document.querySelector("#loading").style.display = "none"
+
+                document.querySelector("#compile").removeAttribute("disabled")
+                document.querySelector("#compile").addEventListener("click", () => {
+                    document.querySelector("#loading").style.display = "block"
+                    try {
+                    document.querySelector("#output").value = pyodide.runPython(`
+from minpiler import compiler, optimizer
+from pathlib import Path
+
+try:
+    result = str(compiler.build(${JSON.stringify(document.querySelector("#input").value)}, Path("main.py"), use_emulator_instructions=False, optimize=optimizer.optimize))
+except Exception as e:
+    result = str(e)
+
+result
+`)
+                    } finally {
+                        document.querySelector("#loading").style.display = "none"
+                    }
+                })
+            }
+            main()
+        </script>
+
+        <h3>Input</h3>
+        <textarea id="input" cols="80" rows="10">from minpiler.std import M, L
+
+M.print("Hello world!")
+M.print_flush(L.message1)
+
+M.control.set_enabled(L.reactor1, L.reactor1.heat == 0)
+</textarea>
+        <br>
+        <input type="button" id="compile" value="Compile" disabled></input>
+
+        <h3>Output</h3>
+        <textarea id="output" cols="80" rows="10" disabled autocomplete="off" style="color: black;"></textarea>
+    </body>
+</html>
