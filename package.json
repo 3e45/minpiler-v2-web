@@ -1,0 +1,27 @@
+{
+  "name": "minpiler-v2-web",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "build": "node ./build.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://3e45@github.com/3e45/minpiler-v2-web.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/3e45/minpiler-v2-web/issues"
+  },
+  "homepage": "https://github.com/3e45/minpiler-v2-web#readme",
+  "dependencies": {
+    "monaco-editor": "^0.34.0",
+    "pyodide": "^0.21.1"
+  },
+  "devDependencies": {
+    "@types/node": "^18.7.13",
+    "esbuild": "^0.15.5"
+  }
+}
